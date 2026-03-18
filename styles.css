@@ -824,6 +824,83 @@ body {
     margin: 0;
 }
 
+.testimonial-form-wrapper {
+    margin-top: 2rem;
+    background: var(--card-bg);
+    border: 1px solid rgba(0, 212, 255, 0.15);
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+.testimonial-form-title {
+    margin-bottom: 0.5rem;
+}
+
+.testimonial-form-help {
+    color: var(--text-light);
+    margin-bottom: 1rem;
+}
+
+.testimonial-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.testimonial-field {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.testimonial-field label {
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.testimonial-field input,
+.testimonial-field textarea {
+    width: 100%;
+    background: var(--bg-secondary);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 10px;
+    color: var(--text-color);
+    padding: 0.8rem 1rem;
+    font-family: inherit;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.testimonial-field input:focus,
+.testimonial-field textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+}
+
+.testimonial-field textarea {
+    resize: vertical;
+    min-height: 110px;
+}
+
+.testimonial-feedback {
+    min-height: 1.2rem;
+    font-size: 0.95rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.testimonial-feedback.success {
+    color: #00ffc8;
+}
+
+.testimonial-feedback.error {
+    color: #ff6b6b;
+}
+
+.testimonial-card--mine {
+    border-color: rgba(0, 255, 200, 0.45);
+    box-shadow: var(--shadow-lg), 0 0 22px rgba(0, 255, 200, 0.2);
+}
+
 /* ========================================
    Contact Section
 ======================================== */
@@ -1070,6 +1147,10 @@ body {
     .articles-grid,
     .testimonials-grid {
         grid-template-columns: 1fr;
+    }
+
+    .testimonial-form-wrapper {
+        padding: 1.5rem;
     }
 
     .timeline::before {

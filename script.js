@@ -332,6 +332,173 @@ function createCustomCursor() {
 }
 
 // ========================================
+// Testimonios: un comentario por navegador (cookie)
+// ========================================
+const TESTIMONIAL_COOKIE_NAME = 'hb_testimonial_user';
+const TESTIMONIAL_STORAGE_KEY = 'hb_testimonial_data';
+
+function setCookie(name, value, days) {
+    const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const cookies = document.cookie ? document.cookie.split('; ') : [];
+    for (let i = 0; i < cookies.length; i++) {
+        const [key, ...rest] = cookies[i].split('=');
+        if (key === name) {
+            return decodeURIComponent(rest.join('='));
+        }
+    }
+    return null;
+}
+
+function generateUserId() {
+    if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+        return window.crypto.randomUUID();
+    }
+    return `u_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function safeParseJSON(value) {
+    try {
+        return JSON.parse(value);
+    } catch (_error) {
+        return null;
+    }
+}
+
+function getStoredTestimonials() {
+    const raw = localStorage.getItem(TESTIMONIAL_STORAGE_KEY);
+    const parsed = raw ? safeParseJSON(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+}
+
+function saveStoredTestimonials(testimonials) {
+    localStorage.setItem(TESTIMONIAL_STORAGE_KEY, JSON.stringify(testimonials));
+}
+
+function upsertTestimonialData(userId, name, comment) {
+    const testimonials = getStoredTestimonials();
+    const existingIndex = testimonials.findIndex(item => item.userId === userId);
+    const payload = {
+        userId,
+        name,
+        comment,
+        updatedAt: new Date().toISOString()
+    };
+
+    if (existingIndex >= 0) {
+        testimonials[existingIndex] = payload;
+    } else {
+        testimonials.push(payload);
+    }
+    saveStoredTestimonials(testimonials);
+}
+
+function getTestimonialByUserId(userId) {
+    const testimonials = getStoredTestimonials();
+    return testimonials.find(item => item.userId === userId) || null;
+}
+
+function renderUserTestimonial(testimonial, userId) {
+    if (!testimonial) {
+        return;
+    }
+
+    const grid = document.querySelector('.testimonials-grid');
+    if (!grid) {
+        return;
+    }
+
+    const existingCard = grid.querySelector(`[data-user-id="${userId}"]`);
+    const card = existingCard || document.createElement('article');
+    card.className = 'testimonial-card testimonial-card--mine';
+    card.setAttribute('data-user-id', userId);
+    card.innerHTML = `
+        <p class="testimonial-text">"${testimonial.comment}"</p>
+        <h3 class="testimonial-author">${testimonial.name} (Tu comentario)</h3>
+    `;
+
+    if (!existingCard) {
+        grid.appendChild(card);
+    }
+}
+
+function updateFormMode(hasComment) {
+    const submitBtn = document.getElementById('testimonialSubmitBtn');
+    const help = document.getElementById('testimonialFormHelp');
+
+    if (!submitBtn || !help) {
+        return;
+    }
+
+    if (hasComment) {
+        submitBtn.innerHTML = '<i class="fas fa-pen"></i> Actualizar comentario';
+        help.textContent = 'Ya tienes un comentario en este navegador. Solo puedes editar ese mismo comentario.';
+    } else {
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar comentario';
+        help.textContent = 'Puedes publicar un solo comentario desde este navegador y luego editarlo cuando quieras.';
+    }
+}
+
+function setFeedback(message, type) {
+    const feedback = document.getElementById('testimonialFeedback');
+    if (!feedback) {
+        return;
+    }
+
+    feedback.textContent = message;
+    feedback.classList.remove('success', 'error');
+    if (type) {
+        feedback.classList.add(type);
+    }
+}
+
+function initTestimonialsForm() {
+    const form = document.getElementById('testimonialForm');
+    const nameInput = document.getElementById('testimonialName');
+    const commentInput = document.getElementById('testimonialComment');
+
+    if (!form || !nameInput || !commentInput) {
+        return;
+    }
+
+    const userId = getCookie(TESTIMONIAL_COOKIE_NAME);
+    const existing = userId ? getTestimonialByUserId(userId) : null;
+
+    if (existing) {
+        nameInput.value = existing.name;
+        commentInput.value = existing.comment;
+        renderUserTestimonial(existing, userId);
+    }
+
+    updateFormMode(Boolean(existing));
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const name = nameInput.value.trim();
+        const comment = commentInput.value.trim();
+
+        if (!name || !comment) {
+            setFeedback('Completa nombre y comentario antes de enviar.', 'error');
+            return;
+        }
+
+        const normalizedUserId = getCookie(TESTIMONIAL_COOKIE_NAME) || generateUserId();
+        if (!getCookie(TESTIMONIAL_COOKIE_NAME)) {
+            setCookie(TESTIMONIAL_COOKIE_NAME, normalizedUserId, 365);
+        }
+
+        const payload = { userId: normalizedUserId, name, comment };
+        upsertTestimonialData(payload.userId, payload.name, payload.comment);
+        renderUserTestimonial(payload, payload.userId);
+        updateFormMode(true);
+        setFeedback('Tu comentario fue guardado. Desde este navegador solo podrás editar este mismo comentario.', 'success');
+    });
+}
+
+// ========================================
 // Inicialización
 // ========================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -339,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
     observeElements();
     createParticles();
     addCardEffects();
+    initTestimonialsForm();
     // createCustomCursor(); // Descomentar si se desea cursor personalizado
     
     console.log('%c¡Hola! 👋', 'color: #667eea; font-size: 24px; font-weight: bold;');

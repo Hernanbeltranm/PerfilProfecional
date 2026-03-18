@@ -416,6 +416,43 @@
                     <h3 class="testimonial-author">Mentor académico</h3>
                 </article>
             </div>
+
+            <div class="testimonial-form-wrapper">
+                <h3 class="testimonial-form-title">Deja tu testimonio</h3>
+                <p class="testimonial-form-help" id="testimonialFormHelp">
+                    Puedes publicar un solo comentario desde este navegador y luego editarlo cuando quieras.
+                </p>
+                <form id="testimonialForm" class="testimonial-form" novalidate>
+                    <div class="testimonial-field">
+                        <label for="testimonialName">Tu nombre</label>
+                        <input
+                            type="text"
+                            id="testimonialName"
+                            name="testimonialName"
+                            maxlength="60"
+                            placeholder="Ej: Andrea Gómez"
+                            required
+                        >
+                    </div>
+
+                    <div class="testimonial-field">
+                        <label for="testimonialComment">Tu comentario</label>
+                        <textarea
+                            id="testimonialComment"
+                            name="testimonialComment"
+                            rows="4"
+                            maxlength="280"
+                            placeholder="Escribe tu experiencia o recomendación"
+                            required
+                        ></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="testimonialSubmitBtn">
+                        <i class="fas fa-paper-plane"></i> Publicar comentario
+                    </button>
+                    <p class="testimonial-feedback" id="testimonialFeedback" aria-live="polite"></p>
+                </form>
+            </div>
         </div>
     </section>
 
